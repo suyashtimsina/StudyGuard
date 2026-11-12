@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyGuard — Focus timer with smart distraction alerts</title>
+  <meta name="description" content="A Pomodoro focus timer that gently reminds you to get back to studying when your phone pulls you away. Everything runs privately in your browser.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 17l5 5 9-11' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="StudyGuard home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#4f46e5"/><path d="M9 17l5 5 9-11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        StudyGuard
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#app">Focus</a>
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero container">
+      <span class="eyebrow">Pomodoro timer + focus assistant</span>
+      <h1>Stay focused. <span>Study smarter.</span></h1>
+      <p>Work in focused sessions, and get a gentle nudge if your phone pulls you away. Everything runs privately in your browser.</p>
+    </section>
+
+    <section id="app" class="container app-grid">
+      <!-- Camera column -->
+      <div class="card">
+        <div class="video-wrap" id="videoWrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div class="placeholder" id="placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>
+            <div>Camera is off<br><small>Press “Start studying” to begin a session</small></div>
+          </div>
+          <div class="pill" id="pill" data-kind="info"><span class="dot"></span><span id="statusText">Ready when you are</span></div>
+          <div class="live" id="liveBadge" hidden>● LIVE</div>
+        </div>
+        <div class="btn-row">
+          <button id="startBtn" class="btn primary">Start studying</button>
+          <button id="stopBtn" class="btn danger" disabled>Stop studying</button>
+          <button id="recalBtn" class="btn ghost" disabled>Recalibrate</button>
+        </div>
+        <p class="small-note" id="motion"></p>
+        <p class="small-note" id="debug"></p>
+      </div>
+
+      <!-- Side column -->
+      <div class="side">
+        <div class="card timer-card" id="timerCard" data-phase="idle">
+          <h2 class="card-title">Pomodoro timer</h2>
+          <div class="ring">
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <circle class="track" cx="100" cy="100" r="88"/>
+              <circle class="progress" id="ringProgress" cx="100" cy="100" r="88"/>
+            </svg>
+            <div class="ring-center">
+              <div id="timeText">25:00</div>
+              <div id="phaseText">Ready to focus</div>
+            </div>
+          </div>
+          <div class="dots" id="dots" aria-label="Sessions completed in this set"></div>
+          <div class="btn-row">
+            <button id="pauseBtn" class="btn ghost" disabled>Pause</button>
+            <button id="skipBtn" class="btn ghost" disabled>Skip</button>
+            <button id="resetBtn" class="btn ghost" disabled>Restart</button>
+          </div>
+        </div>
+
+        <div class="card" id="stats">
+          <h2 class="card-title">Today</h2>
+          <div class="stat-grid">
+            <div class="stat"><span>Focused</span><strong id="focused">0 min</strong></div>
+            <div class="stat"><span>Distracted</span><strong id="distracted">0 min</strong></div>
+            <div class="stat"><span>Reminders</span><strong id="reminders">0</strong></div>
+            <div class="stat"><span>Pomodoros</span><strong id="pomodoros">0</strong></div>
+          </div>
+          <div class="score">
+            <div class="score-top"><span>Focus score</span><span id="scoreText">—</span></div>
+            <div class="bar"><div id="scoreBar"></div></div>
+          </div>
+        </div>
+
+        <details class="card settings">
+          <summary>Settings</summary>
+          <div class="settings-grid">
+            <div class="field"><label for="focusMin">Focus (min)</label><input type="number" id="focusMin" min="1" max="120"></div>
+            <div class="field"><label for="shortMin">Short break</label><input type="number" id="shortMin" min="1" max="60"></div>
+            <div class="field"><label for="longMin">Long break</label><input type="number" id="longMin" min="1" max="60"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="overlayToggle"> Show tracking overlay and debug values (for tuning)</label>
+        </details>
+      </div>
+    </section>
+
+    <section id="how" class="block">
+      <div class="container">
+        <h2>How it works</h2>
+        <p class="lead">Three simple parts that work together to keep your study sessions on track.</p>
+        <div class="features">
+          <div class="card feature"><div class="icon">⏱️</div><h3>Pomodoro sessions</h3><p>Study in 25-minute focus blocks with short breaks, and a longer break after every fourth session. All lengths are adjustable.</p></div>
+          <div class="card feature"><div class="icon">👁️</div><h3>Smart focus detection</h3><p>Your camera spots when a phone is in your hand or when you have been looking down or away for too long.</p></div>
+          <div class="card feature"><div class="icon">🔔</div><h3>Gentle reminders</h3><p>You get a sound, a voice prompt and an on-screen nudge, but never while you are on a break.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy" class="block">
+      <div class="container">
+        <h2>Your camera stays yours</h2>
+        <p class="lead">Privacy is built in, not bolted on.</p>
+        <div class="card privacy-box">
+          <ul>
+            <li>All detection runs on your device. Video frames are never uploaded or recorded.</li>
+            <li>The camera turns off the moment you press “Stop studying”.</li>
+            <li>Your daily stats are saved only in this browser’s local storage.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© StudyGuard</span>
+      <span>Built to help you focus.</span>
+    </div>
+  </footer>
+
+  <!-- Reminder modal -->
+  <div id="alertBox" class="modal" hidden role="alertdialog" aria-labelledby="alertTitle" aria-describedby="alertText">
+    <div class="modal-card">
+      <div class="modal-icon">📵</div>
+      <h2 id="alertTitle">Time to refocus</h2>
+      <p id="alertText">Eyes back on your work.</p>
+      <button id="alertClose" class="btn primary">I’m back</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
